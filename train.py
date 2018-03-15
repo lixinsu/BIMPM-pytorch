@@ -83,8 +83,8 @@ def train(args, data):
             writer.add_scalar('loss/test', test_loss, c)
             writer.add_scalar('acc/test', test_acc, c)
 
-            print(f'train loss: {loss:.3f} / dev loss: {dev_loss:.3f} / test loss: {test_loss:.3f}'
-                  f' / dev acc: {dev_acc:.3f} / test acc: {test_acc:.3f}')
+            print('train loss: %.3f / dev loss: %.3f / test loss: %.3f' % (loss, dev_loss, test_loss))
+            print(' / dev acc: %.3f / test acc: %.3f' % (dev_acc, test_acc) )
 
             if dev_acc > max_dev_acc:
                 max_dev_acc = dev_acc
@@ -95,7 +95,7 @@ def train(args, data):
             model.train()
 
     writer.close()
-    print(f'max dev acc: {max_dev_acc:.3f} / max test acc: {max_test_acc:.3f}')
+    print('max dev acc: %.3f / max test acc: %.3f' % (max_dev_acc, max_test_acc))
 
     return best_model
 
@@ -139,7 +139,7 @@ def main():
 
     if not os.path.exists('saved_models'):
         os.makedirs('saved_models')
-    torch.save(best_model.state_dict(), f'saved_models/BIBPM_{args.data_type}_{args.model_time}.pt')
+    torch.save(best_model.state_dict(), 'saved_models/BIBPM_%s_%s.pt' % (args.data_type, args.model_time))
 
     print('training finished!')
 

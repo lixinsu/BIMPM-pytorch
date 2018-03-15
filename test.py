@@ -98,4 +98,4 @@ if __name__ == '__main__':
 
     _, acc = test(model, args, data)
 
-    print(f'test acc: {acc:.3f}')
+    printf('test acc: %.3f ' % acc)

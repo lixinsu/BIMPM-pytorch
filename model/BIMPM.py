@@ -38,7 +38,7 @@ class BIMPM(nn.Module):
 
         # ----- Matching Layer -----
         for i in range(1, 9):
-            setattr(self, f'mp_w{i}',
+            setattr(self, 'mp_w%s' % i ,
                     nn.Parameter(torch.rand(self.l, self.args.hidden_size)))
 
         # ----- Aggregation Layer -----
@@ -83,7 +83,7 @@ class BIMPM(nn.Module):
 
         # ----- Matching Layer -----
         for i in range(1, 9):
-            w = getattr(self, f'mp_w{i}')
+            w = getattr(self, 'mp_w%s' % i)
             nn.init.kaiming_normal(w)
 
         # ----- Aggregation Layer -----
