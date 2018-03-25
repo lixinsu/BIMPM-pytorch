@@ -2,10 +2,12 @@ import argparse
 
 import torch
 from torch import nn
+import torch.nn.functional as F
 from torch.autograd import Variable
+from sklearn import metrics
 
 from model.BIMPM import BIMPM
-from model.utils import SNLI, Quora
+from model.utils import SNLI, Quora, Quasart
 
 
 def test(model, args, data, mode='test'):
@@ -17,7 +19,10 @@ def test(model, args, data, mode='test'):
     criterion = nn.CrossEntropyLoss()
     model.eval()
     acc, loss, size = 0, 0, 0
-
+    preds = []
+    gts = []
+    pred_scores = []
+    debug = 10
     for batch in iterator:
         if args.data_type == 'SNLI':
             s1, s2 = 'premise', 'hypothesis'
@@ -43,13 +48,25 @@ def test(model, args, data, mode='test'):
         batch_loss = criterion(pred, batch.label)
         loss += batch_loss.data[0]
 
-        _, pred = pred.max(dim=1)
-        acc += (pred == batch.label).sum().float()
+        _, pred_label = pred.max(dim=1)
+        acc += (pred_label == batch.label).sum().float()
         size += len(pred)
-
+        pred = F.softmax(pred)
+        pred = pred.cpu().data.numpy().tolist()
+        gt = batch.label.cpu().data.numpy().tolist()
+        gts.extend(gt)
+        pred_scores.extend([x[1] for x in pred])
+        #if debug ==0:
+        #    break
+        #debug -= 1
+    print(len(gts))
+    gts.append(1)
+    pred_scores.append(1)
+    precision, recall, thresholds = metrics.precision_recall_curve(gts, pred_scores)
+    auc_pr = metrics.auc(recall, precision)
     acc /= size
     acc = acc.cpu().data[0]
-    return loss, acc
+    return loss, acc, auc_pr
 
 
 def load_model(args, data):
@@ -87,6 +104,14 @@ if __name__ == '__main__':
     elif args.data_type == 'Quora':
         print('loading Quora data...')
         data = Quora(args)
+    elif args.data_type == 'Searchqa':
+        print('loading Searchqa data...')
+        data = Searchqa(args)
+    elif args.data_type == 'Quasart':
+        print('loading Quasart data...')
+        data = Quasart(args)
+    else:
+        raise NotImplementedError('only SNLI or Quora data is possible')
 
     setattr(args, 'char_vocab_size', len(data.char_vocab))
     setattr(args, 'word_vocab_size', len(data.TEXT.vocab))
