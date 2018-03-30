@@ -82,11 +82,9 @@ def train(args, data):
         batch_loss.backward()
         optimizer.step()
         if (i + 1) % args.print_freq == 0:
-
             dev_loss, dev_acc, dev_auc_pr = test(model, args, data, mode='dev')
             test_loss, test_acc, test_auc_pr = test(model, args, data)
             c = (i + 1) // args.print_freq
-
             viz.line(X=np.array([c]),Y=np.array([loss]), win=args.loss_curve, name='train-%s' % args.line_suffix, update='append')
             viz.line(X=np.array([c]),Y=np.array([dev_loss]), win=args.loss_curve, name='dev-%s' % args.line_suffix, update='append')
             viz.line(X=np.array([c]),Y=np.array([test_loss]), win=args.loss_curve, name='test-%s' % args.line_suffix, update='append')
@@ -102,7 +100,6 @@ def train(args, data):
                 max_test_auc = test_auc_pr
                 best_model = copy.deepcopy(model)
                 torch.save(best_model.state_dict(), 'saved_models/BIBPM_%s_%s.pt' % (args.data_type, args.model_time))
-
             loss = 0
             model.train()
 
@@ -133,7 +130,7 @@ def main():
     parser.add_argument('--line-suffix', default='tmp', type=str)
     parser.add_argument('--log-file', default='output.log', type=str, help='log file path')
     args = parser.parse_args()
-
+    #--------------------------------------------------------------------------------
     # Set logging
     logger.setLevel(logging.INFO)
     fmt = logging.Formatter('%(asctime)s: [ %(message)s ]',
@@ -146,6 +143,8 @@ def main():
         logfile.setFormatter(fmt)
         logger.addHandler(logfile)
     logger.info('COMMAND: %s' % ' '.join(sys.argv))
+    #--------------------------------------------------------------------------------
+    # load dataset
     if args.data_type == 'SNLI':
         print('loading SNLI data...')
         data = SNLI(args)
@@ -165,7 +164,7 @@ def main():
     setattr(args, 'word_vocab_size', len(data.TEXT.vocab))
     setattr(args, 'class_size', len(data.LABEL.vocab))
     setattr(args, 'max_word_len', data.max_word_len)
-    setattr(args, 'model_time', strftime('%H:%M:%S', gmtime()))
+    setattr(args, 'model_time', strftime('%Y%m%d-%H-%M-%S', gmtime()))
 
     logger.info('training start!')
     train(args, data)
